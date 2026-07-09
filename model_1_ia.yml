@@ -1,0 +1,394 @@
+service: model1-ia
+
+provider:
+  name: aws
+  runtime: python3.11
+  memorySize: 1024
+  timeout: 600
+  role: ${env:ROLE}
+  stage: ${env:STAGE, 'dev'}
+  region: ${env:AWS_REGION, 'us-east-1'}
+  environment:
+    STAGE: ${self:provider.stage}
+    ANTHROPIC_API_KEY: ${env:ANTHROPIC_API_KEY}
+    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME}
+    QUEUE_URL_STRUCTURE_ACCOUNT: !Ref StructureAccountQueue
+    QUEUE_URL_EXTRACT_TABLES: !Ref ExtractTablesQueue
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_PORT: ${env:DB_PORT}
+    SQS_JOB_EVENTS_URL: ${self:custom.sqsUrlBase}/model1-job-${self:provider.stage}-job-events.fifo
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME}
+    WS_ENDPOINT: ${env:WS_ENDPOINT}
+
+custom:
+  # ── AWS Base Config ──
+  awsAccountId: ${env:AWS_ACCOUNT_ID}
+  awsRegion: ${self:provider.region}
+  sqsArnBase: arn:aws:sqs:${self:custom.awsRegion}:${self:custom.awsAccountId}
+  sqsUrlBase: https://sqs.${self:custom.awsRegion}.amazonaws.com/${self:custom.awsAccountId}
+
+package:
+  individually: true
+  exclude:
+    - "**"
+  include:
+    - common/**
+    - common_job/**
+    - models/common_model_job/**
+    - common_aws_clients/**
+    - common_aws_client_async/**
+    - common_ia_clients/**
+    - common_websocket/**
+    - models/model_1/ia/src/**
+
+layers:
+  model1IaLib:
+    package:
+      artifact: models/model_1/ia/layer_common_lib.zip
+    description: "Dependencias comunes para todas las Lambdas de Model1 IA"
+    compatibleRuntimes:
+      - python3.11
+
+functions:
+  # ============================================================================
+  # FUNCIONES DE EXTRACCIÓN (Orquestadas por Step Function)
+  # ============================================================================
+
+  extract_bs:
+    handler: models/model_1/ia/src/handlers/extract_bs.lambda_handler
+    description: "Extrae datos del Balance Sheet (BS) utilizando IA para procesamiento inteligente de documentos financieros"
+    layers:
+      - !Ref Model1IaLibLambdaLayer
+    timeout: 600
+    memorySize: 1024
+
+  extract_pl:
+    handler: models/model_1/ia/src/handlers/extract_pl.lambda_handler
+    description: "Extrae datos del Profit & Loss (P&L) utilizando IA para análisis de estados de resultados"
+    layers:
+      - !Ref Model1IaLibLambdaLayer
+    timeout: 600
+    memorySize: 1024
+
+  extract_cf:
+    handler: models/model_1/ia/src/handlers/extract_cf.lambda_handler
+    description: "Extrae datos del Cash Flow (CF) utilizando IA para análisis de flujos de efectivo"
+    layers:
+      - !Ref Model1IaLibLambdaLayer
+    timeout: 600
+    memorySize: 1024
+
+  # ============================================================================
+  # FUNCIÓN DE PERSISTENCIA
+  # ============================================================================
+
+  subir_bd:
+    handler: models/model_1/ia/src/handlers/subir_bd.lambda_handler
+    description: "Consolida y persiste los datos extraídos (BS, PL, CF) en S3 según los inputs recibidos del Step Function"
+    layers:
+      - !Ref Model1IaLibLambdaLayer
+    timeout: 300
+    memorySize: 512
+
+  # ============================================================================
+  # FUNCIÓN ORQUESTADORA - Conectada a SQS Structure Account
+  # ============================================================================
+
+  stef_function:
+    handler: models/model_1/ia/src/handlers/requester_stef_function.lambda_handler
+    description: "Orquestador que invoca sincrónicamente el Step Function para estructurar estados financieros y subir resultados a S3"
+    layers:
+      - !Ref Model1IaLibLambdaLayer
+    timeout: 900
+    memorySize: 1024
+    environment:
+      STATE_MACHINE_ARN: !Ref ExtractorStateMachine
+    events:
+      - sqs:
+          arn: !GetAtt StructureAccountQueue.Arn
+          batchSize: 1
+          maximumBatchingWindow: 0
+
+  # ============================================================================
+  # FUNCIÓN DE EXTRACCIÓN DE TABLAS - Conectada a SQS Extract Tables
+  # ============================================================================
+
+  extraer_years_tablas:
+    handler: models/model_1/ia/src/handlers/extract_tables_years.lambda_handler
+    description: "Extrae páginas relevantes de estados financieros e identifica tablas con datos financieros importantes por año fiscal"
+    layers:
+      - !Ref Model1IaLibLambdaLayer
+    timeout: 600
+    memorySize: 1024
+    events:
+      - sqs:
+          arn: !GetAtt ExtractTablesQueue.Arn
+          batchSize: 1
+          maximumBatchingWindow: 0
+
+# ==============================================================================
+# RECURSOS AWS (SQS, DLQ, STEP FUNCTION)
+# ==============================================================================
+
+resources:
+  Resources:
+    # ==========================================================================
+    # SQS: Structure Account Queue (FIFO) + DLQ
+    # ==========================================================================
+
+    StructureAccountDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-structure-account-DLQ.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        MessageRetentionPeriod: 1209600
+        VisibilityTimeout: 3600
+        SqsManagedSseEnabled: true
+
+    StructureAccountQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-structure-account.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        VisibilityTimeout: 5400
+        MessageRetentionPeriod: 7200
+        DelaySeconds: 0
+        MaximumMessageSize: 262144
+        ReceiveMessageWaitTimeSeconds: 20
+        DeduplicationScope: messageGroup
+        FifoThroughputLimit: perMessageGroupId
+        SqsManagedSseEnabled: true
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt StructureAccountDLQ.Arn
+          maxReceiveCount: 3
+
+    # ==========================================================================
+    # SQS: Extract Tables Queue (FIFO) + DLQ
+    # ==========================================================================
+
+    ExtractTablesDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-extract-tables-DLQ.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        MessageRetentionPeriod: 1209600
+        VisibilityTimeout: 3600
+        SqsManagedSseEnabled: true
+
+    ExtractTablesQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-extract-tables.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        VisibilityTimeout: 3600
+        MessageRetentionPeriod: 7200
+        DelaySeconds: 0
+        MaximumMessageSize: 262144
+        ReceiveMessageWaitTimeSeconds: 20
+        DeduplicationScope: messageGroup
+        FifoThroughputLimit: perMessageGroupId
+        SqsManagedSseEnabled: true
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt ExtractTablesDLQ.Arn
+          maxReceiveCount: 3
+
+    # ==========================================================================
+    # IAM ROLE: Step Function Execution Role
+    # ==========================================================================
+
+    StepFunctionExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-sfn-role
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: states.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: StepFunctionLambdaInvoke
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource:
+                    - arn:aws:lambda:${self:provider.region}:${self:custom.awsAccountId}:function:${self:service}-${self:provider.stage}-*
+
+    # ==========================================================================
+    # STEP FUNCTION: Extractor State Machine (CloudFormation nativo - NO PLUGIN)
+    # ==========================================================================
+
+    ExtractorStateMachine:
+      Type: AWS::StepFunctions::StateMachine
+      Properties:
+        StateMachineName: ${self:service}-${self:provider.stage}-extractor-state-machine
+        RoleArn: !GetAtt StepFunctionExecutionRole.Arn
+        DefinitionString:
+          Fn::Sub:
+            - |
+              {
+                "Comment": "Orquesta la extracción paralela de BS, PL y CF, y luego persiste los datos",
+                "StartAt": "ParallelExtraction",
+                "States": {
+                  "ParallelExtraction": {
+                    "Type": "Parallel",
+                    "Branches": [
+                      {
+                        "StartAt": "ExtractPL",
+                        "States": {
+                          "ExtractPL": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke",
+                            "OutputPath": "$.Payload",
+                            "Parameters": {
+                              "FunctionName": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ServiceName}-${Stage}-extract_pl",
+                              "Payload.$": "$"
+                            },
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "Lambda.ServiceException",
+                                  "Lambda.AWSLambdaException",
+                                  "Lambda.SdkClientException",
+                                  "Lambda.TooManyRequestsException"
+                                ],
+                                "IntervalSeconds": 2,
+                                "MaxAttempts": 3,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "End": true
+                          }
+                        }
+                      },
+                      {
+                        "StartAt": "ExtractBS",
+                        "States": {
+                          "ExtractBS": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke",
+                            "OutputPath": "$.Payload",
+                            "Parameters": {
+                              "FunctionName": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ServiceName}-${Stage}-extract_bs",
+                              "Payload.$": "$"
+                            },
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "Lambda.ServiceException",
+                                  "Lambda.AWSLambdaException",
+                                  "Lambda.SdkClientException",
+                                  "Lambda.TooManyRequestsException"
+                                ],
+                                "IntervalSeconds": 2,
+                                "MaxAttempts": 3,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "End": true
+                          }
+                        }
+                      },
+                      {
+                        "StartAt": "ExtractCF",
+                        "States": {
+                          "ExtractCF": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke",
+                            "OutputPath": "$.Payload",
+                            "Parameters": {
+                              "FunctionName": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ServiceName}-${Stage}-extract_cf",
+                              "Payload.$": "$"
+                            },
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "Lambda.ServiceException",
+                                  "Lambda.AWSLambdaException",
+                                  "Lambda.SdkClientException",
+                                  "Lambda.TooManyRequestsException"
+                                ],
+                                "IntervalSeconds": 2,
+                                "MaxAttempts": 3,
+                                "BackoffRate": 2
+                              }
+                            ],
+                            "End": true
+                          }
+                        }
+                      }
+                    ],
+                    "Next": "SubirBD"
+                  },
+                  "SubirBD": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "OutputPath": "$.Payload",
+                    "Parameters": {
+                      "FunctionName": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ServiceName}-${Stage}-subir_bd",
+                      "Payload.$": "$"
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "End": true
+                  }
+                }
+              }
+            - ServiceName: ${self:service}
+              Stage: ${self:provider.stage}
+
+  # ============================================================================
+  # OUTPUTS
+  # ============================================================================
+
+  Outputs:
+    StructureAccountQueueUrl:
+      Description: "URL de la cola SQS FIFO para estructuración de cuentas"
+      Value: !Ref StructureAccountQueue
+      Export:
+        Name: ${self:service}-${self:provider.stage}-StructureAccountQueueUrl
+
+    StructureAccountQueueArn:
+      Description: "ARN de la cola SQS FIFO para estructuración de cuentas"
+      Value: !GetAtt StructureAccountQueue.Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-StructureAccountQueueArn
+
+    ExtractTablesQueueUrl:
+      Description: "URL de la cola SQS FIFO para extracción de tablas"
+      Value: !Ref ExtractTablesQueue
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ExtractTablesQueueUrl
+
+    ExtractTablesQueueArn:
+      Description: "ARN de la cola SQS FIFO para extracción de tablas"
+      Value: !GetAtt ExtractTablesQueue.Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ExtractTablesQueueArn
+
+    StateMachineArn:
+      Description: "ARN del Step Function para extracción de estados financieros"
+      Value: !Ref ExtractorStateMachine
+      Export:
+        Name: ${self:service}-${self:provider.stage}-StateMachineArn

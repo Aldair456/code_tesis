@@ -1,0 +1,4 @@
+psycopg2-binary==2.9.11
+pydantic==2.12.5
+marshmallow==4.0.0
+lark-parser==0.12.0

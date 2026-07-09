@@ -1,0 +1,477 @@
+{
+  "summary": {
+    "total_tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "pass_rate": "0.0%",
+    "total_duration_seconds": 44.715832,
+    "generated_at": "2025-12-08T10:27:11.015967",
+    "comparison_fields": [
+      "name",
+      "value",
+      "period"
+    ]
+  },
+  "tests": [
+    {
+      "name": "Test Trimestral - test4.png",
+      "job_id": "49a69c48-28cb-4196-be82-6edd3c69a231",
+      "status": "COMPLETED",
+      "passed": false,
+      "match_percentage": 0.0,
+      "duration_seconds": 44.715832,
+      "started_at": "2025-12-08T10:26:25.743152",
+      "completed_at": "2025-12-08T10:27:10.458984",
+      "error_message": null,
+      "input_file": "trimestrales/test4.png",
+      "output_file": "trimestrales/test4_output.json",
+      "comparison_summary": {
+        "total_comparisons": 22,
+        "matches": 0,
+        "mismatches": 22
+      },
+      "mismatches": [
+        {
+          "field": "ACCUMULATED_RESULTS|2021",
+          "expected": null,
+          "actual": {
+            "name": "ACCUMULATED_RESULTS",
+            "value": -227371.91,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Resultado Acumulado Negativos",
+                "value": -227371.91
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "INVENTORY|2021",
+          "expected": null,
+          "actual": {
+            "name": "INVENTORY",
+            "value": 7927329.09,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Mercaderias y Materias Primas",
+                "value": 7927329.09
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "TAX_PAYABLES|2021",
+          "expected": null,
+          "actual": {
+            "name": "TAX_PAYABLES",
+            "value": 23574.7,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Tributos por pagar",
+                "value": 23574.7
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "ACCOUNTS_RECEIVABLE|2021",
+          "expected": null,
+          "actual": {
+            "name": "ACCOUNTS_RECEIVABLE",
+            "value": 1607.8,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Cuentas por Cobrar al accionista, socio",
+                "value": 1607.8
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "SALES|2022",
+          "expected": {
+            "name": "SALES",
+            "value": 1365057,
+            "year": 2022,
+            "period": "2022",
+            "details": [
+              {
+                "name": "Ventas netas",
+                "value": 1365057
+              }
+            ],
+            "tags": [
+              "gm"
+            ],
+            "value_type": "positive",
+            "priority": 10000,
+            "display_name": "Ventas"
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "PERIOD_RESULTS|2021",
+          "expected": null,
+          "actual": {
+            "name": "PERIOD_RESULTS",
+            "value": 1366834,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Resultado del ejercicio",
+                "value": 1366834
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "PRE_PAID_EXPENSES|2021",
+          "expected": null,
+          "actual": {
+            "name": "PRE_PAID_EXPENSES",
+            "value": 6584.33,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Servicios y otros contratados por anticipado",
+                "value": 6584.33
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "DEFERRED_TAX_CURRENT_ASSET|2021",
+          "expected": null,
+          "actual": {
+            "name": "DEFERRED_TAX_CURRENT_ASSET",
+            "value": 88437,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Activos diferidos",
+                "value": 88437
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "OTHER_PAYABLES_LT|2021",
+          "expected": null,
+          "actual": {
+            "name": "OTHER_PAYABLES_LT",
+            "value": 12202602.39,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Cuentas por Pagar Diversas",
+                "value": 12202602.39
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "ADMIN_EXPENSES|2023",
+          "expected": {
+            "name": "ADMIN_EXPENSES",
+            "value": -196366,
+            "year": 2023,
+            "period": "2023",
+            "details": [
+              {
+                "name": "Gastos administrativos",
+                "value": 196366
+              }
+            ],
+            "tags": [
+              "om",
+              "expense"
+            ],
+            "value_type": "positive",
+            "priority": 0,
+            "display_name": "Gastos administrativos"
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "CASH|2021",
+          "expected": null,
+          "actual": {
+            "name": "CASH",
+            "value": 3459311.15,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Efectivo y Equivalentes al Efectivo",
+                "value": 3459311.15
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "COGS|2023",
+          "expected": {
+            "name": "COGS",
+            "value": -797078,
+            "year": 2023,
+            "period": "2023",
+            "details": [
+              {
+                "name": "Costo de ventas",
+                "value": 797078
+              }
+            ],
+            "tags": [
+              "gm",
+              "expense"
+            ],
+            "value_type": "positive",
+            "priority": 0,
+            "display_name": "Costo de Ventas"
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "ACCOUNTS_PAYABLE|2021",
+          "expected": null,
+          "actual": {
+            "name": "ACCOUNTS_PAYABLE",
+            "value": -191204.52,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Cuentas por Pagar Comerciales Terceros",
+                "value": -191204.52
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "PRE_PAID_INCOME|2021",
+          "expected": null,
+          "actual": {
+            "name": "PRE_PAID_INCOME",
+            "value": 1776957.24,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Pasivo Diferido",
+                "value": 1776957.24
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "OTHER_RECEIVABLES|2021",
+          "expected": null,
+          "actual": {
+            "name": "OTHER_RECEIVABLES",
+            "value": 849570.39,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Cuentas por cobrar diversas Terceros (neto)",
+                "value": 11565.14
+              },
+              {
+                "name": "Cuentas por cobrar diversas Relacionas",
+                "value": 838005.25
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "PROPERTY_PLANT_EQUIPMENT|2021",
+          "expected": null,
+          "actual": {
+            "name": "PROPERTY_PLANT_EQUIPMENT",
+            "value": 812594.24,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Activos Fijos",
+                "value": 812594.24
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "OTHER_CURRENT_ASSETS|2021",
+          "expected": null,
+          "actual": {
+            "name": "OTHER_CURRENT_ASSETS",
+            "value": 921049,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Otras cuentas del activo corriente",
+                "value": 921049
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "ADMIN_EXPENSES|2022",
+          "expected": {
+            "name": "ADMIN_EXPENSES",
+            "value": -189665,
+            "year": 2022,
+            "period": "2022",
+            "details": [
+              {
+                "name": "Gastos administrativos",
+                "value": 189665
+              }
+            ],
+            "tags": [
+              "om",
+              "expense"
+            ],
+            "value_type": "positive",
+            "priority": 0,
+            "display_name": "Gastos administrativos"
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "COGS|2022",
+          "expected": {
+            "name": "COGS",
+            "value": -929479,
+            "year": 2022,
+            "period": "2022",
+            "details": [
+              {
+                "name": "Costo de ventas",
+                "value": 929479
+              }
+            ],
+            "tags": [
+              "gm",
+              "expense"
+            ],
+            "value_type": "positive",
+            "priority": 0,
+            "display_name": "Costo de Ventas"
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "CAPITAL|2021",
+          "expected": null,
+          "actual": {
+            "name": "CAPITAL",
+            "value": 1790500,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Capital Emitido",
+                "value": 1790500
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "SALARIES_PAYABLES|2021",
+          "expected": null,
+          "actual": {
+            "name": "SALARIES_PAYABLES",
+            "value": 58259.15,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Remuneraciones y participac por pagar",
+                "value": 58259.15
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "SALES|2023",
+          "expected": {
+            "name": "SALES",
+            "value": 1275355,
+            "year": 2023,
+            "period": "2023",
+            "details": [
+              {
+                "name": "Ventas netas",
+                "value": 1275355
+              }
+            ],
+            "tags": [
+              "gm"
+            ],
+            "value_type": "positive",
+            "priority": 10000,
+            "display_name": "Ventas"
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        }
+      ]
+    }
+  ]
+}

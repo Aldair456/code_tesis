@@ -1,0 +1,75 @@
+{
+  "summary": {
+    "total_tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "pass_rate": "0.0%",
+    "total_duration_seconds": 44.050152,
+    "generated_at": "2025-12-10T10:22:17.177261",
+    "comparison_fields": [
+      "name",
+      "value",
+      "period"
+    ]
+  },
+  "tests": [
+    {
+      "name": "Test Trimestral - test4.png",
+      "job_id": "11c72f2d-dbc5-4d09-a998-44e18819c2f3",
+      "status": "COMPLETED",
+      "passed": false,
+      "match_percentage": 95.74468085106383,
+      "duration_seconds": 44.050152,
+      "started_at": "2025-12-10T10:21:32.637868",
+      "completed_at": "2025-12-10T10:22:16.688020",
+      "error_message": null,
+      "input_file": "trimestrales/test4.png",
+      "output_file": "trimestrales/test4_output.json",
+      "comparison_summary": {
+        "total_comparisons": 47,
+        "matches": 45,
+        "mismatches": 2
+      },
+      "mismatches": [
+        {
+          "field": "PERIOD_RESULTS_C|2021",
+          "expected": {
+            "name": "PERIOD_RESULTS_C",
+            "value": 13664,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Resultado del ejercicio",
+                "value": 1366834123
+              }
+            ]
+          },
+          "actual": null,
+          "difference_type": "MISSING_IN_ACTUAL",
+          "difference": null,
+          "difference_percent": null
+        },
+        {
+          "field": "PERIOD_RESULTS|2021",
+          "expected": null,
+          "actual": {
+            "name": "PERIOD_RESULTS",
+            "value": 1366834,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Resultado del ejercicio",
+                "value": 1366834
+              }
+            ]
+          },
+          "difference_type": "EXTRA_IN_ACTUAL",
+          "difference": null,
+          "difference_percent": null
+        }
+      ]
+    }
+  ]
+}

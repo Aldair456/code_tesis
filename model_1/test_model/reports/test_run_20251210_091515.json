@@ -1,0 +1,73 @@
+{
+  "summary": {
+    "total_tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "pass_rate": "0.0%",
+    "total_duration_seconds": 34.249601,
+    "generated_at": "2025-12-10T09:15:15.995251",
+    "comparison_fields": [
+      "name",
+      "value",
+      "period"
+    ]
+  },
+  "tests": [
+    {
+      "name": "Test Trimestral - test4.png",
+      "job_id": "c15dfe93-6d41-4204-8efc-d688d54da9ea",
+      "status": "COMPLETED",
+      "passed": false,
+      "match_percentage": 95.74468085106383,
+      "duration_seconds": 34.249601,
+      "started_at": "2025-12-10T09:14:41.092627",
+      "completed_at": "2025-12-10T09:15:15.342228",
+      "error_message": null,
+      "input_file": "trimestrales/test4.png",
+      "output_file": "trimestrales/test4_output.json",
+      "comparison_summary": {
+        "total_comparisons": 47,
+        "matches": 45,
+        "mismatches": 2
+      },
+      "mismatches": [
+        {
+          "field": "PERIOD_RESULTS_ADIC|2021",
+          "expected": {
+            "name": "PERIOD_RESULTS_ADIC",
+            "value": 13664,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Resultado del ejercicio",
+                "value": 1366834
+              }
+            ]
+          },
+          "actual": null,
+          "difference": "MISSING_IN_ACTUAL",
+          "difference_percent": null
+        },
+        {
+          "field": "PERIOD_RESULTS|2021",
+          "expected": null,
+          "actual": {
+            "name": "PERIOD_RESULTS",
+            "value": 1366834,
+            "year": 2021,
+            "period": "2021",
+            "details": [
+              {
+                "name": "Resultado del ejercicio",
+                "value": 1366834
+              }
+            ]
+          },
+          "difference": "EXTRA_IN_ACTUAL",
+          "difference_percent": null
+        }
+      ]
+    }
+  ]
+}

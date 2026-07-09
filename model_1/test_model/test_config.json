@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Test Trimestral - test4.png",
+      "input_s3_key": "trimestrales/test4.png",
+      "expected_output_path": "./expected_outputs/test4_expected.json",
+      "output_s3_key_txt": "trimestrales/test4_output.txt",
+      "output_s3_key_json": "trimestrales/test4_output.json",
+      "metadata": {
+        "type": "BS",
+        "periodicity_type": "anual"
+      }
+    },
+    {
+      "name": "Test Balance Sheet 2023",
+      "input_s3_key": "documentos/balance_2023.pdf",
+      "expected_output_path": "./expected_outputs/balance_2023_expected.json",
+      "metadata": {
+        "type": "BS",
+        "periodicity_type": "anual"
+      }
+    }
+  ]
+}

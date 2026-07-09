@@ -1,0 +1,64 @@
+
+LOGIN  
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 051826715282.dkr.ecr.us-east-1.amazonaws.com
+
+Ingresar al Docker para poder ver las cosas 
+
+
+docker run -it --entrypoint /bin/bash credit-proposal-coril:dev
+
+
+
+docker run -it --entrypoint /bin/bash credit-proposal-cover-pdf:dev
+
+# 1. SALIR del contenedor (estás adentro)
+exit
+
+# 2. BUILD con el código nuevo (desde la raíz del proyecto)
+docker build -f services/service_credit_proposal_coril/Dockerfile -t credit-proposal-coril:dev .
+
+# 3. TAG para ECR
+docker tag credit-proposal-coril:dev 051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:dev
+
+# 4. LOGIN a ECR (si no lo hiciste hoy)
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 051826715282.dkr.ecr.us-east-1.amazonaws.com
+
+# 5. PUSH a ECR
+docker push 051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:dev
+
+# 6. DEPLOY con Serverless
+$env:ECR_IMAGE_URI="051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:dev"
+serverless deploy --stage dev
+
+-----------------------------------
+
+Claro, siguiendo tu mismo patrón, para el servicio de credit-proposal (donde está el PDF Cover), los comandos serían estos:
+
+1. BUILD
+Construye la imagen usando el Dockerfile específico de service_credit_proposal:
+
+powershell
+docker build -f services/service_credit_proposal/Dockerfile -t credit-proposal-cover-pdf:dev .
+2. TAG
+Etiqueta la imagen con la URI del repositorio ECR (nota que el nombre del repo es credit-proposal-cover-pdf):
+
+powershell
+docker tag credit-proposal-cover-pdf:dev 051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-cover-pdf:dev
+3. LOGIN
+(Igual que siempre, solo necesitas hacerlo una vez por sesión):
+
+powershell
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 051826715282.dkr.ecr.us-east-1.amazonaws.com
+4. PUSH
+Sube la imagen al ECR:
+
+powershell
+docker push 051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-cover-pdf:dev
+5. DEPLOY con Serverless
+Aquí la variable de entorno clave es ECR_IMAGE_URI_CREDIT_PROPOSAL_COVER (según tu archivo 
+service_credit_proposal.yml
+):
+
+powershell
+$env:ECR_IMAGE_URI_CREDIT_PROPOSAL_COVER="051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-cover-pdf:dev"
+npx serverless deploy --config service_credit_proposal.yml --stage dev

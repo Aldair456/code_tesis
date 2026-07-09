@@ -1,0 +1,130 @@
+service: model1-pre-ia
+
+provider:
+  name: aws
+  runtime: python3.11
+  memorySize: 1024
+  timeout: 600
+  role: ${env:ROLE}
+  stage: ${env:STAGE, 'dev'}
+  region: ${env:AWS_REGION, 'us-east-1'}
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME}
+    # URL del SQS propio de init-job
+    SQS_INIT_JOB_URL: !Ref InitJobQueue
+    # Referencias cruzadas a SQS de otros servicios (URLs)
+    SQS_JOB_EVENTS_URL: ${self:custom.sqsUrlBase}/model1-job-${self:provider.stage}-job-events.fifo
+    SQS_EXTRACT_TABLES_URL: ${self:custom.sqsUrlBase}/model1-ia-${self:provider.stage}-extract-tables.fifo
+    SQS_NOTIFY_NOTES_URL: ${self:custom.sqsUrlBase}/${env:SQS_NOTIFY_NOTES_NAME}
+
+custom:
+  # ── AWS Base Config ──
+  awsAccountId: ${env:AWS_ACCOUNT_ID}
+  awsRegion: ${self:provider.region}
+  sqsArnBase: arn:aws:sqs:${self:custom.awsRegion}:${self:custom.awsAccountId}
+  sqsUrlBase: https://sqs.${self:custom.awsRegion}.amazonaws.com/${self:custom.awsAccountId}
+
+package:
+  individually: true
+  exclude:
+    - "**"
+  include:
+    - common/**
+    - common_job/**
+    - common_aws_clients/**
+    - models/model_1/preia/src/**
+    - common_aws_client_async/**
+    - models/common_model_job/**
+
+layers:
+  model1PreIaLib:
+    package:
+      artifact: models/model_1/preia/layer_common_lib.zip
+    description: "Dependencias comunes para las Lambdas de preprocesamiento antes del uso de IA en Model1"
+    compatibleRuntimes:
+      - python3.11
+
+functions:
+  # ============================================================================
+  # FUNCIÓN DE PREPROCESAMIENTO - Conectada a SQS Init Job
+  # ============================================================================
+
+  process_event:
+    handler: models/model_1/preia/src/handlers/process_event.lambda_handler
+    description: "Realiza el preprocesamiento de documentos financieros antes de iniciar el análisis con IA, incluyendo validación, normalización y preparación de datos"
+    layers:
+      - !Ref Model1PreIaLibLambdaLayer
+    timeout: 600
+    memorySize: 1024
+    events:
+      - sqs:
+          arn: !GetAtt InitJobQueue.Arn
+          batchSize: 1
+          maximumBatchingWindow: 0
+
+# ==============================================================================
+# RECURSOS AWS
+# ==============================================================================
+
+resources:
+  Resources:
+    # ==========================================================================
+    # SQS: Init Job Queue (FIFO) + DLQ
+    # ==========================================================================
+
+    InitJobDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-init-job-DLQ.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        MessageRetentionPeriod: 1209600
+        VisibilityTimeout: 600
+        SqsManagedSseEnabled: true
+
+    InitJobQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-init-job.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        VisibilityTimeout: 600
+        MessageRetentionPeriod: 7200
+        DelaySeconds: 0
+        MaximumMessageSize: 262144
+        ReceiveMessageWaitTimeSeconds: 0
+        DeduplicationScope: messageGroup
+        FifoThroughputLimit: perMessageGroupId
+        SqsManagedSseEnabled: true
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt InitJobDLQ.Arn
+          maxReceiveCount: 3
+
+  # ============================================================================
+  # OUTPUTS
+  # ============================================================================
+
+  Outputs:
+    InitJobQueueUrl:
+      Description: "URL de la cola SQS FIFO para inicialización de jobs de Model1"
+      Value: !Ref InitJobQueue
+      Export:
+        Name: ${self:service}-${self:provider.stage}-InitJobQueueUrl
+
+    InitJobQueueArn:
+      Description: "ARN de la cola SQS FIFO para inicialización de jobs de Model1"
+      Value: !GetAtt InitJobQueue.Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-InitJobQueueArn
+
+    InitJobDLQUrl:
+      Description: "URL de la cola DLQ para jobs de inicialización fallidos"
+      Value: !Ref InitJobDLQ
+      Export:
+        Name: ${self:service}-${self:provider.stage}-InitJobDLQUrl

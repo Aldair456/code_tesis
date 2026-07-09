@@ -1,0 +1,36 @@
+{
+  "summary": {
+    "total_tests": 1,
+    "passed": 1,
+    "failed": 0,
+    "pass_rate": "100.0%",
+    "total_duration_seconds": 33.504786,
+    "generated_at": "2025-12-08T10:30:50.945312",
+    "comparison_fields": [
+      "name",
+      "value",
+      "period"
+    ]
+  },
+  "tests": [
+    {
+      "name": "Test Trimestral - test4.png",
+      "job_id": "7bd56641-01f1-4492-abc1-f298a5bad47e",
+      "status": "COMPLETED",
+      "passed": true,
+      "match_percentage": 100.0,
+      "duration_seconds": 33.504786,
+      "started_at": "2025-12-08T10:30:16.915399",
+      "completed_at": "2025-12-08T10:30:50.420185",
+      "error_message": null,
+      "input_file": "trimestrales/test4.png",
+      "output_file": "trimestrales/test4_output.json",
+      "comparison_summary": {
+        "total_comparisons": 48,
+        "matches": 48,
+        "mismatches": 0
+      },
+      "mismatches": []
+    }
+  ]
+}

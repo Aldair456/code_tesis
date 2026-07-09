@@ -1,0 +1,43 @@
+# Archivos y carpetas de PyCharm
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+
+# Configuración y caché de virtualenv
+venv/
+.env
+*.env
+*.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de dependencias en AWS Lambda
+*.zip
+.DS_Store
+*.log
+
+# Configuración específica de AWS
+.aws/
+*.pem
+*.key
+terraform.tfstate
+terraform.tfstate.backup
+
+# Archivos de salida y bases de datos locales
+*.sqlite3
+*.db
+*.sqlite
+*.log
+nohup.out
+
+# Archivos de Docker (si usas contenedores)
+docker-compose.override.yml
+.envrc
+test/
+# configuracion specifica de serverles
+.serverless/
+variables

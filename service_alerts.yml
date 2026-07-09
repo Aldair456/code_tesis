@@ -1,0 +1,157 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# SERVICIO: Service Alerts
+# Descripción: Gestión y procesamiento de alertas
+# Endpoints: /alerts/*, /businesses/*/alerts/*, /evaluators/*/alerts/*
+# Triggers: SQS FIFO para procesamiento de alertas
+# ══════════════════════════════════════════════════════════════════════════════
+
+service: service-alerts
+
+provider:
+  name: aws
+  runtime: python3.11
+  memorySize: 1024
+  timeout: 29
+  region: ${env:AWS_REGION, 'us-east-1'}
+  role: ${env:ROLE}
+  stage: ${env:STAGE, 'dev'}
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+
+package:
+  individually: true
+  exclude:
+    - "**"
+  include:
+    - common/**
+    - services/service_alerts/src/**
+
+layers:
+  alertsLogLib:
+    package:
+      artifact: services/service_alerts/layer_common_lib.zip
+    description: "Dependencias comunes para las Lambdas de Alerts"
+
+custom:
+  # ── AWS Base Config ──
+  awsAccountId: ${env:AWS_ACCOUNT_ID}
+  awsRegion: ${self:provider.region}
+  sqsArnBase: arn:aws:sqs:${self:custom.awsRegion}:${self:custom.awsAccountId}
+
+  # ── SQS de ESTE servicio (consume) ──
+  sqsAlertsEvents: ${env:SQS_SERVICE_ALERTS_PROCESS_NAME}
+
+  # ── CORS configs ──
+  corsGet: &corsGet
+    origin: '*'
+    methods: [GET, OPTIONS]
+    headers:
+      - Content-Type
+      - Authorization
+
+  corsPost: &corsPost
+    origin: '*'
+    methods: [POST, OPTIONS]
+    headers:
+      - Content-Type
+      - Authorization
+
+  authorizerConfig: &authorizerConfig
+    type: COGNITO_USER_POOLS
+    authorizerId:
+      Ref: ApiGatewayAuthorizer
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FUNCIONES
+# ──────────────────────────────────────────────────────────────────────────────
+functions:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TRIGGERS SQS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  process_sqs_alerts:
+    handler: services/service_alerts/src/handlers/process_sqs_alerts.lambda_handler
+    description: "[SQS] Procesa las alertas en SQS"
+    layers:
+      - { Ref: AlertsLogLibLambdaLayer }
+    events:
+      - sqs:
+          arn: ${self:custom.sqsArnBase}:${self:custom.sqsAlertsEvents}
+          batchSize: 1
+          enabled: true
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # ENDPOINTS HTTP
+  # ════════════════════════════════════════════════════════════════════════════
+
+  get_alerts_by_business:
+    handler: services/service_alerts/src/handlers/get_alerts_by_business.lambda_handler
+    description: "[GET] Obtiene las alertas por business"
+    layers:
+      - { Ref: AlertsLogLibLambdaLayer }
+    events:
+      - http:
+          path: businesses/{business_id}/alerts
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+  archive_alert:
+    handler: services/service_alerts/src/handlers/archive_alert.lambda_handler
+    description: "[POST] Archiva una alerta específica"
+    layers:
+      - { Ref: AlertsLogLibLambdaLayer }
+    events:
+      - http:
+          path: alerts/{alert_id}/archive
+          method: post
+          cors: *corsPost
+          authorizer: *authorizerConfig
+
+  get_total_alerts_by_evaluator:
+    handler: services/service_alerts/src/handlers/get_total_alerts_by_evaluator.lambda_handler
+    description: "[GET] Obtiene el total de alertas activas por evaluator_id"
+    layers:
+      - { Ref: AlertsLogLibLambdaLayer }
+    events:
+      - http:
+          path: evaluators/{evaluator_id}/alerts/total
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+  get_archived_alerts:
+    handler: services/service_alerts/src/handlers/get_archived_alerts.lambda_handler
+    description: "[GET] Obtiene alertas archivadas de un business específico"
+    layers:
+      - { Ref: AlertsLogLibLambdaLayer }
+    events:
+      - http:
+          path: businesses/{business_id}/alerts/archived
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+# ──────────────────────────────────────────────────────────────────────────────
+# RECURSOS
+# ──────────────────────────────────────────────────────────────────────────────
+resources:
+  Description: "API Service Alerts - Gestión y procesamiento de alertas"
+
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - ${env:COGNITO_USER_POOL_ARN}

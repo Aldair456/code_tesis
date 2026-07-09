@@ -1,0 +1,5 @@
+from .credit_proposal_coril_repository import CreditProposalCorilRepository
+from .business_analysis_repository import BusinessAnalysisRepository
+from .financial_analysis_repository import FinancialAnalysisRepository
+
+__all__ = ['CreditProposalCorilRepository', 'BusinessAnalysisRepository', 'FinancialAnalysisRepository']

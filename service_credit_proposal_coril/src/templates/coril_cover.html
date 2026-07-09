@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ reportTitle }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+
+            @bottom-right {
+                content: counter(page);
+                font-family: "Liberation Sans", Calibri, Arial, sans-serif;
+                font-size: 10pt;
+                color: #666;
+            }
+
+            @bottom-left {
+                content: "{{ header.date }}";
+                font-family: "Liberation Sans", Calibri, Arial, sans-serif;
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: "Liberation Sans", Calibri, Arial, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.3;
+            color: #000;
+        }
+
+        /* Header Table */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 9pt;
+        }
+
+        .header-table th {
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+            border-bottom: 1px solid #ccc;
+            padding: 4px;
+        }
+
+        .header-table td {
+            text-align: center;
+            font-weight: bold;
+            padding: 4px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        /* Titles */
+        .report-title {
+            text-align: center;
+            font-size: 16pt;
+            font-weight: bold;
+            color: #002060;
+            /* Dark Blue */
+            margin-top: 20px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .client-name {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            color: #002060;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* Sections */
+        h3 {
+            color: #002060;
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: disc;
+            /* Square bullets matching image */
+            margin-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .section-content {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        /* Markdown Content Styles */
+        .section-content h1 {
+            font-size: 13pt;
+            /* Slightly larger than section title (12pt) or same */
+            font-weight: bold;
+            color: #002060;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+
+        .section-content h2 {
+            font-size: 12pt;
+            /* Same as section title */
+            font-weight: bold;
+            color: #002060;
+            margin-top: 12px;
+            margin-bottom: 6px;
+        }
+
+        .section-content h3 {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #002060;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .section-content h4,
+        .section-content h5,
+        .section-content h6 {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .section-content ul,
+        .section-content ol {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .section-content li {
+            margin-bottom: 3px;
+        }
+
+        /* Tablas dentro del contenido markdown (ej. cuadros de márgenes, indicadores) */
+        .section-content table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+            margin: 10px 0 12px 0;
+            border: 1px solid #ccc;
+        }
+        .section-content table th {
+            background-color: #002060;
+            color: white;
+            padding: 6px 8px;
+            border: 1px solid #002060;
+            text-align: left;
+            font-weight: bold;
+        }
+        .section-content table td {
+            padding: 5px 8px;
+            border: 1px solid #ccc;
+        }
+        .section-content table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+        .section-content table td:not(:first-child) {
+            text-align: right;
+        }
+        .section-content table th:not(:first-child) {
+            text-align: right;
+        }
+        .section-content table tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        /* Tables (Debt Table etc) */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-top: 10px;
+        }
+
+        .data-table th {
+            background-color: #002060;
+            color: white;
+            padding: 4px;
+            border: 1px solid #000;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .data-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .total-row td {
+            background-color: #002060;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Estado de Resultados: solo fondo celeste y texto blanco; borde negro normal */
+        .data-table.estados-resultados tr.row-margin-line td {
+            background-color: #5B9BD5;
+            color: white;
+        }
+
+        /* Balance General: solo fondo celeste y texto blanco; borde negro normal */
+        .data-table.balance-general tr.row-margin-line td {
+            background-color: #5B9BD5;
+            color: white;
+        }
+
+        /* Flujo de Caja: solo fondo celeste y texto blanco; borde negro normal */
+        .data-table.flujo-caja tr.row-margin-line td {
+            background-color: #5B9BD5;
+            color: white;
+        }
+
+        /* FODA */
+        .foda-section {
+            margin-top: 10px;
+        }
+
+        .foda-title {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Table -->
+    <table class="header-table">
+        <thead>
+            <tr>
+                <th>Grupo<br>Económico</th>
+                <th>Fecha de<br>Constitución</th>
+                <th>Cliente<br>desde</th>
+                <th>Tamaño<br>Empresa</th>
+                <th>Clasificación<br>SBS</th>
+                <th>Nivel de<br>Aprobación</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ header.economicGroup }}</td>
+                <td>{{ header.constitutionDate }}</td>
+                <td>{{ header.clientSince }}</td>
+                <td>{{ header.companySize }}</td>
+                <td>{{ header.sbsClassification }}</td>
+                <td>{{ header.approvalLevel }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="report-title">{{ reportTitle }}</div>
+    <div class="client-name">{{ clientName }} (RUC: {{ clientRuc }})</div>
+
+    <hr style="border: 0; border-top: 2px solid #000;">
+
+    <!-- Section 1: Risk Proposal -->
+    <h3>{{ riskProposal.title }}</h3>
+    <ul>
+        {% for item in riskProposal['items'] %}
+        <li><strong>{{ item.label }}:</strong> {{ item.value }}</li>
+        {% endfor %}
+    </ul>
+    {% if riskProposal.purpose %}
+    <p>{{ riskProposal.purpose }}</p>
+    {% endif %}
+
+    <!-- Sections Loop -->
+    {% for section in sections %}
+
+    {% if section.number == "1" %}
+    <!-- Already handled Section 1 -->
+    {% else %}
+
+    <!-- Section Title -->
+    <h3>{{ section.number }}. {{ section.title }}</h3>
+
+    <!-- Content (sección 9 FODA: no mostrar content si hay foda parseado, para evitar JSON crudo) -->
+    {% if section.content and not (section.number == "9" and section.foda) %}
+    <div class="section-content">{{ section.content | markdown | safe }}</div>
+    {% endif %}
+    <!-- Debt Table (Section 3) -->
+    {% if section.debtTable %}
+    <div class="section-content">
+        <div
+            style="width: 60%; height: 100px; border: 1px solid #999; display: -webkit-flex; display: flex; align-items: center; justify-content: center; color: #666; font-style: italic; font-size: 14pt; background-color: #fdfdfd;">
+            FOTO VENCIDOS
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- FODA (Section 9) -->
+    {% if section.foda %}
+    <div class="section-content">
+        {% if section.foda.fortalezas %}
+        <div class="foda-title">Fortalezas:</div>
+        <ul>
+            {% for item in section.foda.fortalezas %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if section.foda.oportunidades %}
+        <div class="foda-title">Oportunidades:</div>
+        <ul>
+            {% for item in section.foda.oportunidades %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if section.foda.debilidades %}
+        <div class="foda-title">Debilidades:</div>
+        <ul>
+            {% for item in section.foda.debilidades %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if section.foda.amenazas %}
+        <div class="foda-title">Amenazas:</div>
+        <ul>
+            {% for item in section.foda.amenazas %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    {% endfor %}
+
+    <!-- ANEXOS Section -->
+    {% if financial_results or balance_general or cash_flow %}
+    <div class="page-break"></div>
+    <h3>ANEXOS</h3>
+
+    <!-- Balance General Table (First) -->
+    {% if balance_general %}
+    <h3>BALANCE GENERAL</h3>
+    <table class="data-table balance-general">
+        <thead>
+            <tr>
+                <th>CUENTA</th>
+                {% for year in balance_general.years_list %}
+                <th>{{ year }}</th>
+                <th>%</th>
+                {% endfor %}
+                {% if balance_general.last_period_label %}
+                <th>{{ balance_general.last_period_label }}</th>
+                <!-- Removed % column for last period -->
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in balance_general.balance_sheet_list %}
+            {% set label_norm_b = (item.label or '')|upper|trim %}
+            {% set is_section_row_b = label_norm_b in ['ACTIVOS CORRIENTES', 'ACTIVOS NO CORRIENTES', 'PASIVOS
+            CORRIENTES', 'PASIVOS NO CORRIENTES', 'PATRIMONIO','PASIVOS CORRIENTES'] %}
+            <tr{% if is_section_row_b %} class="row-margin-line" {% endif %}>
+                <td style="text-align: left; font-weight: bold;">{{ item.label }}</td>
+                {% for year_data in item.years %}
+                <td>{{ year_data.amount if year_data.amount else '-' }}</td>
+                <td>{{ year_data.percentage if year_data.percentage else '-' }}</td>
+                {% endfor %}
+                {% if balance_general.last_period_label %}
+                <td>{{ item.last_period_amount if item.last_period_amount else '-' }}</td>
+                {% endif %}
+                </tr>
+                <!-- Details Row (Balance General) -->
+                {% set has_details = false %}
+                {% for year_data in item.years %}{% if year_data.details %}{% set has_details = true %}{% endif %}{%
+                endfor %}
+                {% if item.last_period_details %}{% set has_details = true %}{% endif %}
+
+                {% if has_details %}
+                <tr>
+                    <td
+                        style="text-align: left; padding-left: 15px; font-size: 7.5pt; font-style: italic; color: #444;">
+                        {% set unique_detail_names = [] %}
+                        {% for year_data in item.years %}
+                        {% for d in year_data.details %}
+                        {% if d.name not in unique_detail_names %}
+                        {% set _ = unique_detail_names.append(d.name) %}
+                        <div style="margin-bottom: 2px;">{{ d.name }}</div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                        {% for d in item.last_period_details %}
+                        {% if d.name not in unique_detail_names %}
+                        {% set _ = unique_detail_names.append(d.name) %}
+                        <div style="margin-bottom: 2px;">{{ d.name }}</div>
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                    {% for year_data in item.years %}
+                    <td style="font-size: 7.5pt; color: #444; vertical-align: top;">
+                        {% for d_name in unique_detail_names %}
+                        {% set found = false %}
+                        {% for d in year_data.details %}
+                        {% if d.name == d_name %}
+                        <div style="margin-bottom: 2px;">{{ d.amount }}</div>
+                        {% set found = true %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if not found %}<div style="margin-bottom: 2px;">-</div>{% endif %}
+                        {% endfor %}
+                    </td>
+                    <td></td> <!-- Empty % for details -->
+                    {% endfor %}
+                    {% if balance_general.last_period_label %}
+                    <td style="font-size: 7.5pt; color: #444; vertical-align: top;">
+                        {% for d_name in unique_detail_names %}
+                        {% set found = false %}
+                        {% for d in item.last_period_details %}
+                        {% if d.name == d_name %}
+                        <div style="margin-bottom: 2px;">{{ d.amount }}</div>
+                        {% set found = true %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if not found %}<div style="margin-bottom: 2px;">-</div>{% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endif %}
+                {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Financial Results Table (Second) -->
+    {% if financial_results %}
+    <h3>ESTADOS RESULTADOS</h3>
+
+    <table class="data-table estados-resultados">
+        <thead>
+            <tr>
+                <th>CONCEPTO</th>
+                {% for year in financial_results.years_list %}
+                <th>{{ year }}</th>
+                <th>%</th>
+                {% endfor %}
+                <th>{{ financial_results.ltm_label }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in financial_results.financial_results_list %}
+            {% set label_norm = (result.label or '')|upper %}
+            {% set is_margin_row = label_norm in ['MARGEN BRUTO', 'MARGEN OPERATIVO', 'MARGEN ANTES DE IMPUESTOS',
+            'MARGEN NETO'] %}
+            <tr{% if is_margin_row %} class="row-margin-line" {% endif %}>
+                <td style="text-align: left; font-weight: bold;">{{ result.label }}</td>
+                {% for year_data in result.years %}
+                <td>{{ year_data.amount if year_data.amount else '-' }}</td>
+                <td>{{ year_data.percentage if year_data.percentage else '-' }}</td>
+                {% endfor %}
+                <td>{{ result.ltm_amount if result.ltm_amount else '-' }}</td>
+                </tr>
+                <!-- Details Row (Financial Results) -->
+                {% set has_details = false %}
+                {% for year_data in result.years %}{% if year_data.details %}{% set has_details = true %}{% endif %}{%
+                endfor %}
+                {% if has_details %}
+                <tr>
+                    <td
+                        style="text-align: left; padding-left: 15px; font-size: 7.5pt; font-style: italic; color: #444;">
+                        {% set unique_detail_names = [] %}
+                        {% for year_data in result.years %}
+                        {% for d in year_data.details %}
+                        {% if d.name not in unique_detail_names %}
+                        {% set _ = unique_detail_names.append(d.name) %}
+                        <div style="margin-bottom: 2px;">{{ d.name }}</div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                    </td>
+                    {% for year_data in result.years %}
+                    <td style="font-size: 7.5pt; color: #444; vertical-align: top;">
+                        {% for d_name in unique_detail_names %}
+                        {% set found = false %}
+                        {% for d in year_data.details %}
+                        {% if d.name == d_name %}
+                        <div style="margin-bottom: 2px;">{{ d.amount }}</div>
+                        {% set found = true %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if not found %}<div style="margin-bottom: 2px;">-</div>{% endif %}
+                        {% endfor %}
+                    </td>
+                    <td></td>
+                    {% endfor %}
+                    <td></td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Cash Flow Table (Third) -->
+    {% if cash_flow %}
+    <h3>FLUJO DE CAJA</h3>
+
+    <!-- Igual que el PDF (cover): solo CUENTA + columnas por año; sin % ni columna Q3/ltm_label -->
+    <table class="data-table flujo-caja">
+        <thead>
+            <tr>
+                <th>CUENTA</th>
+                {% for year in cash_flow.years_list %}
+                <th>{{ year }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cash_flow.cash_flow_list %}
+            {% set label_norm_c = (item.label or '')|upper %}
+            {% if label_norm_c != 'FLUJO DE CAJA' %}
+            {% set is_section_row_c = label_norm_c in ['FLUJO DE CAJA OPERATIVO', 'FLUJO DE CAJA DE INVERSION', 'FLUJO DE CAJA DE INVERSIÓN', 'FLUJO DE CAJA DE FINANCIAMIENTO', 'FLUJO DE CAJA NETO'] %}
+            <tr{% if is_section_row_c %} class="row-margin-line" {% endif %}>
+                <td style="text-align: left; font-weight: bold;">{{ item.label }}</td>
+                {% for year_data in item.years %}
+                <td>{{ year_data.amount if year_data.amount else '-' }}</td>
+                {% endfor %}
+                </tr>
+                <!-- Details Row (Cash Flow) -->
+                {% set has_details = false %}
+                {% for year_data in item.years %}{% if year_data.details %}{% set has_details = true %}{% endif %}{%
+                endfor %}
+                {% if has_details %}
+                <tr>
+                    <td
+                        style="text-align: left; padding-left: 15px; font-size: 7.5pt; font-style: italic; color: #444;">
+                        {% set unique_detail_names = [] %}
+                        {% for year_data in item.years %}
+                        {% for d in year_data.details %}
+                        {% if d.name not in unique_detail_names %}
+                        {% set _ = unique_detail_names.append(d.name) %}
+                        <div style="margin-bottom: 2px;">{{ d.name }}</div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                    </td>
+                    {% for year_data in item.years %}
+                    <td style="font-size: 7.5pt; color: #444; vertical-align: top;">
+                        {% for d_name in unique_detail_names %}
+                        {% set found = false %}
+                        {% for d in year_data.details %}
+                        {% if d.name == d_name %}
+                        <div style="margin-bottom: 2px;">{{ d.amount }}</div>
+                        {% set found = true %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if not found %}<div style="margin-bottom: 2px;">-</div>{% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endif %}
+                {% endif %}
+                {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% endif %}
+
+</body>
+
+</html>

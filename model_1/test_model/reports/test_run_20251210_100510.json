@@ -1,0 +1,71 @@
+{
+  "summary": {
+    "total_tests": 2,
+    "passed": 0,
+    "failed": 2,
+    "pass_rate": "0.0%",
+    "total_duration_seconds": 71.432241,
+    "generated_at": "2025-12-10T10:05:10.899685",
+    "comparison_fields": [
+      "name",
+      "value",
+      "period"
+    ]
+  },
+  "tests": [
+    {
+      "name": "Test Trimestral - test4.png",
+      "job_id": "87866afb-9b79-4ad9-951d-ba0a39871aff",
+      "status": "COMPLETED",
+      "passed": false,
+      "match_percentage": 97.91666666666666,
+      "duration_seconds": 38.770405,
+      "started_at": "2025-12-10T10:03:53.457854",
+      "completed_at": "2025-12-10T10:04:32.228259",
+      "error_message": null,
+      "input_file": "trimestrales/test4.png",
+      "output_file": "trimestrales/test4_output.json",
+      "comparison_summary": {
+        "total_comparisons": 48,
+        "matches": 47,
+        "mismatches": 1
+      },
+      "mismatches": [
+        {
+          "field": "PERIOD_RESULTS|2021|value",
+          "expected": 13664,
+          "actual": 1366834,
+          "difference": 1353170,
+          "difference_percent": 9903.176229508195
+        }
+      ]
+    },
+    {
+      "name": "Test Trimestral - test4.png",
+      "job_id": "0aa9c1a4-0c37-47fb-934c-bd5672da0232",
+      "status": "COMPLETED",
+      "passed": false,
+      "match_percentage": 97.91666666666666,
+      "duration_seconds": 32.661836,
+      "started_at": "2025-12-10T10:04:37.756037",
+      "completed_at": "2025-12-10T10:05:10.417873",
+      "error_message": null,
+      "input_file": "trimestrales/test4.png",
+      "output_file": "trimestrales/test4_output.json",
+      "comparison_summary": {
+        "total_comparisons": 48,
+        "matches": 47,
+        "mismatches": 1
+      },
+      "mismatches": [
+        {
+          "field": "PERIOD_RESULTS|2021|value",
+          "expected": 13664,
+          "actual": 1366834,
+          "difference": 1353170,
+          "difference_percent": 9903.176229508195
+        }
+      ]
+    }
+  ]
+}

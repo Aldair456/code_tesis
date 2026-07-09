@@ -1,0 +1,87 @@
+{
+    "proposal_data": {
+      "header": {
+        "ruc": "20419387658",
+        "actividad": "Materials / Construction Materials",
+        "accionistas": [],
+        "funcionario": "Rodrigo Bonifaz",
+        "tipo_cliente": null,
+        "tipo_credito": null,
+        "tipo_propuesta": null,
+        "grupo_economico": null,
+        "clasificacion_sbs": null,
+        "clasificacion_caja": null,
+        "cliente_razon_social": "CEMENTOS PACASMAYO S.A.A."
+      },
+      "document": {
+        "title": "PROPUESTA DE CRÉDITO – CAJA METROPOLITANA DE LIMA",
+        "schema_version": "1.0",
+        "elaboration_date": "2026-04-29"
+      },
+      "sections": [
+        {
+          "id": "acceso_credito",
+          "title": "5.2.3. Acceso al crédito",
+          "content": ""
+        },
+        {
+          "id": "activo",
+          "title": "5.2.4. a) Activo",
+          "content": "## Análisis de Activos\n\nLa empresa mantiene una base de activos totales relativamente estable entre 2022 y 2024, en torno a **3,200 millones**, con una estructura marcadamente concentrada en activos no\n\nEl inventario es la cuenta corriente dominante, con días de inventario superiores a **350 días** en 2024, un nivel elevado que se ha deteriorado progresivamente desde los 314 días de 2022. Este ciclo largo inmoviliza capital y eleva el riesgo de obsolescencia o desvalorización. El quick ratio de apenas **0.22x** en 2024 confirma que, sin inventarios, la cobertura de pasivos corrientes es muy débil.\n\nLa caja cayó de **143,819** en 2022 a solo **25,258** en 2024, reduciendo el cash ratio a **0.03x**. Los datos interinos de 2025-Q2 muestran una recuperación parcial a 50,302, aunque las cuentas por cobrar comerciales se desplomaron a 1,175, lo cual podría indicar estacionalidad o un cambio en la política de cobranza.\n\n### Riesgos Identificados\n\n-   Concentración excesiva en activos fijos e inventarios con baja rotación, limitando la flexibilidad financiera.\n-   Posición de caja mínima frente a obligaciones corrientes, generando riesgo de liquidez inmediata.\n-   Inversiones en subsidiarias por casi 500 millones cuya valorización y capacidad de generar dividendos no es verificable con la información disponible."
+        },
+        {
+          "id": "pasivo",
+          "title": "5.2.4. b) Pasivo",
+          "content": "## Análisis de Pasivos\n\nLa estructura de pasivos se concentra fuertemente en **deuda financiera**, que representó el 74.9% del pasivo total en 2024 (1,493 MM sobre 1,993 MM). El componente de largo plazo domina: los préstamos LP cerraron 2024 en **1,035 MM** frente a 458 MM de corto plazo, con un ratio CP/LP de **0.44x**, más equilibrado que el 0.64x de 2022 pero superior al 0.32x de 2023, lo que sugiere un incremento reciente de vencimientos próximos.\n\nLas cuentas por pagar comerciales cayeron de 262 MM en 2022 a 190 MM en 2024, reduciendo los días de pago de 109 a 145 días; esto indica que la empresa estira plazos con proveedores pese a menor volumen de compras. Las provisiones corrientes oscilaron significativamente, pasando de 20 MM (2022) a 45 MM (2023) y luego 30 MM (2024), lo que amerita seguimiento sobre contingencias subyacentes.\n\nAl 2T-2025 la deuda financiera total asciende a **1,459 MM** (496 MM CP + 963 MM LP), nivel similar al cierre 2024. El pasivo por impuesto diferido se mantiene estable en torno a 108-111 MM, sin presión adicional.\n\n### Riesgos identificados\n- DSCR (EBITDA) inferior a **1.0x** en todo el periodo (0.66x en 2024), señal de insuficiencia operativa para cubrir servicio de deuda.\n- Deuda Financiera/EBITDA de **4.9x** en 2024, aún elevado pese a mejorar desde 6.8x en 2023.\n- Caja mínima (25 MM en 2024, cash ratio de 0.03x), limitando el colchón de liquidez ante vencimientos de CP."
+        },
+        {
+          "id": "patrimonio",
+          "title": "5.2.4. c) Patrimonio",
+          "content": "## Análisis del Patrimonio\n\nEl patrimonio total se ha mantenido relativamente estable entre 2022 y 2024, pasando de **1,236,135** a **1,254,098**, un incremento modesto de 1.5% en dos años. Al cierre de 2Q 2025 el patrimonio asciende a **1,313,449**, lo que sugiere una acumulación orgánica de resultados en el ejercicio en curso.\n\n### Composición y cuentas relevantes\n\nLas dos partidas de mayor peso son **Capital adicional** (432,779, estable en todo el periodo) y **Capital** (383,889 a 423,868 según el corte), que en conjunto representan cerca del 65% del patrimonio. Las **Reservas** se mantuvieron fijas en 168,636 hasta 2024 y subieron a 208,915 en 2Q 2025, indicando una capitalización parcial de utilidades. El **Resultado acumulado** creció de 268,618 en 2022 a 369,145 en 2Q 2025, coherente con utilidades netas sostenidas (margen neto de **13% a 16%**) y un ROE en torno a **14-16%**.\n\n### Riesgos identificados\n\n- **Otras cuentas del patrimonio** registran saldo negativo creciente: de -17,787 en 2022 a -121,258 en 2Q 2025, lo que erosiona el patrimonio en aprox. 9%. Probablemente refleja ajustes por traducción de moneda extranjera o pérdidas no realizadas, cuya volatilidad podría intensificarse.\n- El apalancamiento D/E permanece elevado (aprox. **159%** en 2024), limitando el colchón patrimonial frente a escenarios adversos.\n- La base de capital no muestra aportes frescos de accionistas; el crecimiento depende exclusivamente de la retención de utilidades."
+        },
+        {
+          "id": "liquidez",
+          "title": "5.2.5. a) Liquidez",
+          "content": "## Análisis de Liquidez\n\nLa posición de liquidez de la empresa muestra un deterioro sostenido entre 2022 y 2024. El **ratio de liquidez corriente** pasó de **111.3%** en 2022 a **104.9%** en 2024, acercándose al umbral crítico de 100% donde los activos corrientes apenas cubren los pasivos de corto plazo. El **capital de trabajo** confirma esta tendencia: se redujo de **103,930** en 2022 a **40,116** en 2024, una caída del 61%, lo que estrecha significativamente el colchón operativo.\n\nLas métricas de liquidez inmediata son particularmente débiles. El **cash ratio** cayó de **0.16x** en 2022 a **0.03x** en 2024, reflejando una caja de apenas 25,258 frente a pasivos corrientes elevados. El **quick ratio** se situó en **0.22x** en 2024, lo que indica una dependencia casi total del inventario para cubrir obligaciones corrientes.\n\n### Ciclo de Conversión de Caja\n\nEl ciclo de conversión se amplió de **231 días** en 2022 a **248 días** en 2024, impulsado por un aumento en los días de inventario (de 314 a 351 días) y en las cuentas por cobrar (de 26 a 43 días), parcialmente compensado por mayor plazo de pago a proveedores (de 109 a 145 días). Un ciclo superior a 8 meses inmoviliza capital y agrava la presión de liquidez.\n\n### Riesgos Clave\n- Caja mínima con cash ratio de 0.03x limita la capacidad de respuesta ante imprevistos.\n- Capital de trabajo en descenso acelerado podría volverse negativo si la tendencia persiste.\n- Ciclo de conversión extenso genera alta dependencia de financiamiento de corto plazo para operar."
+        },
+        {
+          "id": "solvencia",
+          "title": "5.2.5. b) Solvencia",
+          "content": "## Análisis de Solvencia\n\nLa empresa presenta un perfil de apalancamiento **elevado pero con tendencia de mejora gradual**. La deuda financiera se redujo de **1,593 M** en 2022 a **1,493 M** en 2024, una disminución acumulada de 6.3%. El ratio D/E (Pasivos a Patrimonio) descendió de **167.4%** en 2022 a **158.9%** en 2024, reflejando un desapalancamiento moderado apoyado por el crecimiento del patrimonio hacia 1,254 M.\n\nEl ratio de solvencia (Activos / Pasivos) mejoró levemente hasta **160.3%** en 2024, lo que indica cobertura patrimonial positiva aunque ajustada. La deuda financiera sobre activos bajó a **46.7%** en 2024 desde 49.4% el año previo, mientras que la deuda neta a EBITDA se redujo significativamente de **6.6x** en 2022 a **4.9x** en 2024, impulsada por la expansión del EBITDA a 302 M.\n\n### Cobertura de Servicio de Deuda\n\nEl DSCR basado en EBITDA permanece **por debajo de 1.0x** en todo el periodo, alcanzando solo **0.66x** en 2024. El DSCR por FCO fue aún menor, con **0.47x**, lo que evidencia insuficiencia del flujo operativo para cubrir vencimientos de corto plazo más intereses. La ratio FCO a deuda financiera mejoró a **0.14x** en 2024 pero sigue siendo débil.\n\n### Riesgos Clave\n- DSCR consistentemente inferior a 1.0x indica dependencia de refinanciamiento para atender vencimientos corrientes.\n- Ratio CP/LP subió a **0.44x** en 2024, señalando mayor concentración de deuda en el corto plazo.\n- Caja mínima de solo **25 M** en 2024 limita severamente el colchón de liquidez ante escenarios adversos."
+        },
+        {
+          "id": "rentabilidad",
+          "title": "5.2.5. c) Rentabilidad",
+          "content": "## Análisis de Rentabilidad\n\nLa empresa muestra una tendencia de mejora en márgenes pese a la contracción sostenida de ingresos. Las ventas cayeron de **1,365M** en 2022 a **1,233M** en 2024 (acumulado de -9.7%), sin embargo los márgenes se expandieron de forma notable: el margen bruto pasó de **31.9%** a **41.5%**, el margen EBITDA de **17.7%** a **24.5%** y el margen neto de **13.0%** a **16.1%**. Esto sugiere una gestión eficaz de costos o un cambio en el mix de productos hacia líneas de mayor valor agregado.\n\nEl EBITDA alcanzó **301,886** en 2024, su nivel más alto del trienio, mientras que la utilidad neta creció a **198,875**, un 18% por encima de 2023. El ROA mejoró a **6.2%** en 2024 desde 5.3% el año previo, y el ROE subió a **15.9%**, el mejor registro del periodo analizado. La descomposición DuPont confirma que el impulso proviene del mayor margen neto, ya que la rotación de activos se mantuvo estable en torno a **0.39x** y el apalancamiento (D/E aprox. 159%) se redujo levemente.\n\n### Riesgos y consideraciones\n- La caída consecutiva de ventas limita la sostenibilidad de la mejora si no se revierte la tendencia de ingresos.\n- La ausencia de CAPEX reportado en los tres años genera dudas sobre la inversión en mantenimiento de activos fijos y capacidad futura de generación.\n- Los datos de 2025 figuran en cero, lo que impide evaluar la continuidad del desempeño reciente."
+        },
+        {
+          "id": "flujo_caja",
+          "title": "5.2.6. Flujo de caja",
+          "content": "## Análisis de Flujo de Caja y Capacidad de Repago\n\nLa generación de flujo de caja operativo ha sido volátil en el trienio 2022-2024. El margen FCO sobre ventas pasó de un débil **3.3%** en 2022 a **27.5%** en 2023, para luego retroceder a **17.3%** en 2024. Pese a la caída interanual, el nivel de 2024 sigue siendo razonable y muy superior al de 2022, lo que sugiere una mejora estructural en la conversión de resultados a caja, aunque con cierta irregularidad.\n\nEl Free Cashflow siguió un patrón similar: apenas **45,690** en 2022, un pico de **350,541** en 2023 y **213,526** en 2024. La ausencia de CAPEX reportado implica que todo el FCO se traduce en flujo libre, lo cual favorece la capacidad de amortización pero genera dudas sobre la inversión en mantenimiento de activos.\n\n### Cobertura de Deuda\n\nLos ratios de cobertura revelan tensión significativa. El DSCR basado en FCO fue de solo **0.47x** en 2024 y **0.07x** en 2022, indicando que el flujo operativo no alcanza a cubrir el servicio de deuda de corto plazo más intereses. El ratio FCO a deuda financiera se ubicó en **0.14x** en 2024, lo que implica que se necesitarían aprox. 7 años de flujo operativo actual para repagar la deuda bruta. El ciclo de conversión de caja, estable en torno a **248 días**, evidencia alta inmovilización de capital de trabajo.\n\n### Riesgos Clave\n- DSCR consistentemente inferior a 1.0x en todos los periodos, señal de insuficiencia de caja para el servicio de deuda.\n- Caja disponible mínima (25,258 en 2024) frente a deuda financiera de 1.49 millones, con cash ratio de apenas **0.03x**."
+        },
+        {
+          "id": "fotos_negocio",
+          "title": "5.2.7. Fotos del negocio",
+          "content": ""
+        },
+        {
+          "id": "foda",
+          "title": "5.2.8. FODA",
+          "content": "## Análisis FODA - Cementos Pacasmayo\n\nCementos Pacasmayo opera en el sector de materiales de construcción, con posición relevante en el norte del Perú. El análisis integra la evolución financiera del periodo 2022-2024.\n\n### Fortalezas y Oportunidades\n\nLa empresa muestra márgenes en expansión sostenida: el margen EBITDA pasó de **17.7%** en 2022 a **24.5%** en 2024, reflejando mejoras operativas significativas pese a la caída de ingresos. La rentabilidad neta también mejoró hasta **16.1%** en 2024. El ratio de solvencia se mantiene estable en torno a **160%**, con un patrimonio de 1,254 millones y un D/E que ha descendido gradualmente desde 167% a 159%. El apalancamiento neto (Deuda Neta/EBITDA) mejoró de **6.6x** a **4.9x**, señal de desapalancamiento progresivo.\n\nComo oportunidades, el déficit de infraestructura en el norte peruano ofrece demanda estructural de largo plazo. La generación de flujo de caja libre positivo (214 mil en 2024) permite continuar reduciendo deuda.\n\n### Debilidades y Amenazas\n\n- Ventas en contracción acumulada de aprox. **10%** entre 2022 y 2024, lo que limita la generación absoluta de caja.\n- DSCR (EBITDA) de **0.66x** en 2024, insuficiente para cubrir servicio de deuda con holgura; el DSCR (FCO) es aún menor (**0.47x**).\n- Liquidez inmediata muy ajustada: cash ratio de apenas **0.03x** y caja de solo 25 mil frente a deuda de corto plazo significativa.\n- Ciclo de conversión de caja extenso, cercano a **248 días**, presionando capital de trabajo.\n\nLa dependencia del ciclo de construcción peruano y la exposición a políticas de inversión pública constituyen amenazas externas relevantes para la capacidad de pago."
+        },
+        {
+          "id": "conclusiones",
+          "title": "5.2.9. Conclusiones",
+          "content": "## Análisis de Riesgo de Crédito\n\nLa compañía presenta un perfil de apalancamiento elevado pero con tendencia de mejora gradual. La deuda financiera se redujo de **1,593 M** en 2022 a **1,493 M** en 2024, mientras que el ratio Deuda Financiera/EBITDA bajó de **6.6x** a **4.9x** en el mismo periodo, impulsado por un EBITDA que creció hasta **302 M** en 2024 (margen EBITDA de **24.5%**). No obstante, estos niveles de apalancamiento siguen siendo altos para estándares conservadores.\n\nLa liquidez constituye la principal vulnerabilidad. La caja cayó drásticamente de **144 M** en 2022 a solo **25 M** en 2024, con un cash ratio de apenas **0.03x**. El capital de trabajo se contrajo de **104 M** a **40 M**, y el ciclo de conversión de caja se mantiene extenso en **248 días**, explicado por inventarios de más de 350 días. El DSCR basado en EBITDA fue de **0.66x** en 2024, insuficiente para cubrir el servicio de deuda corriente.\n\nLa rentabilidad es estable: ROE de **15.9%** y margen neto de **16.1%** en 2024, ambos en leve mejora. Sin embargo, las ventas acumulan dos años de caída (aprox. -10% desde 2022), lo que limita la generación futura.\n\n### Riesgos Clave\n- Apalancamiento neto superior a **4.8x EBITDA** con colchón de caja mínimo.\n- DSCR inferior a 1.0x, señalando dependencia de refinanciamiento para cubrir vencimientos de corto plazo.\n- Contracción sostenida de ingresos que podría revertir la mejora en márgenes.\n- Datos anuales 2025 aún sin información financiera completa; los saldos trimestrales muestran deuda vigente de **1,459 M** al 2025-Q2, sin evidencia de desapalancamiento significativo."
+        },
+        {
+          "id": "anexos",
+          "title": "5.2.10. Anexos",
+          "content": ""
+        }
+      ]
+    },
+    "business_id": "833bb9fa-9213-46b7-b0f8-f170b8aa1023",
+    "currency": "USD",
+    "deal_id": null
+  }

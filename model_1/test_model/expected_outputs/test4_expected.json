@@ -1,0 +1,198 @@
+[
+    {
+      "name": "CASH",
+      "value": 3459311.15,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Efectivo y Equivalentes al Efectivo",
+          "value": 3459311.15
+        }
+      ]
+    },
+    {
+      "name": "ACCOUNTS_RECEIVABLE",
+      "value": 1607.8,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Cuentas por Cobrar al accionista, socio",
+          "value": 1607.8
+        }
+      ]
+    },
+    {
+      "name": "OTHER_RECEIVABLES",
+      "value": 849570.39,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Cuentas por cobrar diversas Terceros (neto)",
+          "value": 11565.14
+        },
+        {
+          "name": "Cuentas por cobrar diversas Relacionas",
+          "value": 838005.25
+        }
+      ]
+    },
+    {
+      "name": "PRE_PAID_EXPENSES",
+      "value": 6584.33,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Servicios y otros contratados por anticipado",
+          "value": 6584.33
+        }
+      ]
+    },
+    {
+      "name": "INVENTORY",
+      "value": 7927329.09,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Mercaderias y Materias Primas",
+          "value": 7927329.09
+        }
+      ]
+    },
+    {
+      "name": "OTHER_CURRENT_ASSETS",
+      "value": 921049,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Otras cuentas del activo corriente",
+          "value": 921049
+        }
+      ]
+    },
+    {
+      "name": "DEFERRED_TAX_CURRENT_ASSET",
+      "value": 88437,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Activos diferidos",
+          "value": 88437
+        }
+      ]
+    },
+    {
+      "name": "PROPERTY_PLANT_EQUIPMENT",
+      "value": 812594.24,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Activos Fijos",
+          "value": 812594.24
+        }
+      ]
+    },
+    {
+      "name": "TAX_PAYABLES",
+      "value": 23574.7,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Tributos por pagar",
+          "value": 23574.7
+        }
+      ]
+    },
+    {
+      "name": "SALARIES_PAYABLES",
+      "value": 58259.15,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Remuneraciones y participac por pagar",
+          "value": 58259.15
+        }
+      ]
+    },
+    {
+      "name": "ACCOUNTS_PAYABLE",
+      "value": -191204.52,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Cuentas por Pagar Comerciales Terceros",
+          "value": -191204.52
+        }
+      ]
+    },
+    {
+      "name": "PRE_PAID_INCOME",
+      "value": 1776957.24,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Pasivo Diferido",
+          "value": 1776957.24
+        }
+      ]
+    },
+    {
+      "name": "OTHER_PAYABLES_LT",
+      "value": 12202602.39,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Cuentas por Pagar Diversas",
+          "value": 12202602.39
+        }
+      ]
+    },
+    {
+      "name": "CAPITAL",
+      "value": 1790500,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Capital Emitido",
+          "value": 1790500
+        }
+      ]
+    },
+    {
+      "name": "ACCUMULATED_RESULTS",
+      "value": -227371.91,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Resultado Acumulado Negativos",
+          "value": -227371.91
+        }
+      ]
+    },
+    {
+      "name": "PERIOD_RESULTS_C",
+      "value": 13664,
+      "year": 2021,
+      "period": "2021",
+      "details": [
+        {
+          "name": "Resultado del ejercicio",
+          "value": 1366834123
+        }
+      ]
+    }
+  ]

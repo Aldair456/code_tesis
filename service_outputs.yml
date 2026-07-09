@@ -1,0 +1,271 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# SERVICIO: Outputs
+# Descripción: Cálculo y consulta de outputs financieros
+# Endpoints: /businesses/{business_id}/outputs
+# Triggers: SQS FIFO para cálculo asíncrono de outputs y LTM outputs
+# ══════════════════════════════════════════════════════════════════════════════
+
+service: service-outputs
+
+provider:
+  name: aws
+  runtime: python3.11
+  memorySize: 1024
+  timeout: 29
+  region: ${env:AWS_REGION, 'us-east-1'}
+  role: ${env:ROLE}
+  stage: ${env:STAGE, 'dev'}
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    # SQS URLs para enviar mensajes
+    SQS_URL_PROCESS_ALERTS: ${self:custom.sqsUrlBase}/${self:custom.sqsProcessAlerts}
+    EVENTBRIDGE_WORKFLOWS_BUS_NAME: ${env:EVENTBRIDGE_WORKFLOWS_BUS_NAME}
+
+package:
+  individually: true
+  exclude:
+    - "**"
+  include:
+    - common/**
+    - services/service_outputs/src/**
+    - common_aws_clients/**
+    - common_eventbridge/**
+
+layers:
+  outputLib:
+    package:
+      artifact: services/service_outputs/layer_common_lib.zip
+    description: "Dependencias comunes para todas las Lambdas de Outputs"
+
+custom:
+  # ── AWS Base Config ──
+  awsAccountId: ${env:AWS_ACCOUNT_ID}
+  awsRegion: ${self:provider.region}
+  sqsArnBase: arn:aws:sqs:${self:custom.awsRegion}:${self:custom.awsAccountId}
+  sqsUrlBase: https://sqs.${self:custom.awsRegion}.amazonaws.com/${self:custom.awsAccountId}
+
+  # ── SQS Config ──
+  sqsBatchSize: 1
+  sqsMaxConcurrency: 10
+
+  # ── SQS de ESTE servicio (consume) ──
+  sqsCalculateOutputs: ${env:SQS_SERVICE_OUTPUTS_CALCULATE_OUTPUTS_NAME}
+  sqsCalculateLtmOutputs: ${env:SQS_SERVICE_OUTPUTS_CALCULATE_LTM_OUTPUTS_NAME}
+
+  # ── SQS Derived Cashflows (definida en este yml) ──
+  sqsDerivedCashflowsName: ${self:service}-${self:provider.stage}-derived-cashflows.fifo
+  sqsDerivedCashflowsDlqName: ${self:service}-${self:provider.stage}-derived-cashflows-DLQ.fifo
+
+  # ── SQS de OTROS servicios (envía) ──
+  sqsProcessAlerts: ${env:SQS_SERVICE_ALERTS_PROCESS_NAME}
+
+  # ── CORS configs ──
+  corsGet: &corsGet
+    origin: '*'
+    methods: [GET, OPTIONS]
+    headers:
+      - Content-Type
+      - Authorization
+
+  corsPost: &corsPost
+    origin: '*'
+    methods: [POST, OPTIONS]
+    headers:
+      - Content-Type
+      - Authorization
+
+  corsPut: &corsPut
+    origin: '*'
+    methods: [PUT, OPTIONS]
+    headers:
+      - Content-Type
+      - Authorization
+
+  corsDelete: &corsDelete
+    origin: '*'
+    methods: [DELETE, OPTIONS]
+    headers:
+      - Content-Type
+      - Authorization
+
+  authorizerConfig: &authorizerConfig
+    type: COGNITO_USER_POOLS
+    authorizerId:
+      Ref: ApiGatewayAuthorizer
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FUNCIONES
+# ──────────────────────────────────────────────────────────────────────────────
+functions:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # ENDPOINTS HTTP
+  # ════════════════════════════════════════════════════════════════════════════
+
+  get_calculated_outputs:
+    handler: services/service_outputs/src/handlers/get_calculated_outputs.lambda_handler
+    description: "[GET] Obtiene los outputs calculados aplicando filtros por business"
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - http:
+          path: businesses/{business_id}/outputs
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+  get_outputs:
+    handler: services/service_outputs/src/handlers/get_outputs.lambda_handler
+    description: "[GET] Obtiene todos los outputs aplicando filtro de category"
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - http:
+          path: outputs
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+  recalculate_outputs:
+    handler: services/service_outputs/src/handlers/recalculate_outputs.lambda_handler
+    description: "[POST] Recalcula manualmente outputs (annual + LTM + MA) de un business"
+    timeout: 120
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - http:
+          path: businesses/{business_id}/outputs/recalculate
+          method: post
+          cors: *corsPost
+          authorizer: *authorizerConfig
+
+  recalculate_derived_cashflows:
+    handler: services/service_outputs/src/handlers/recalculate_derived_cashflows.lambda_handler
+    description: "[POST] Recalcula manualmente derived cashflows (annual + LTM + MA) de un business"
+    timeout: 120
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - http:
+          path: businesses/{business_id}/derived-cashflows/recalculate
+          method: post
+          cors: *corsPost
+          authorizer: *authorizerConfig
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TRIGGERS SQS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  calculated_async:
+    handler: services/service_outputs/src/handlers/calculated_async.lambda_handler
+    description: "[SQS] Calcula outputs de forma asíncrona desde cola FIFO"
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - sqs:
+          arn: ${self:custom.sqsArnBase}:${self:custom.sqsCalculateOutputs}
+          batchSize: ${self:custom.sqsBatchSize}
+          maximumConcurrency: ${self:custom.sqsMaxConcurrency}
+          enabled: true
+
+  calculated_async_ltm:
+    handler: services/service_outputs/src/handlers/calculated_async_ltm.lambda_handler
+    description: "[SQS] Calcula outputs LTM de forma asíncrona desde cola FIFO"
+    timeout: 120
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - sqs:
+          arn: ${self:custom.sqsArnBase}:${self:custom.sqsCalculateLtmOutputs}
+          batchSize: ${self:custom.sqsBatchSize}
+          maximumConcurrency: ${self:custom.sqsMaxConcurrency}
+          enabled: true
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # DERIVED CASHFLOWS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  get_derived_cashflows:
+    handler: services/service_outputs/src/handlers/get_derived_cashflows.lambda_handler
+    description: "[GET] Obtiene las definiciones de derived cashflows del evaluador autenticado"
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - http:
+          path: derived-cashflows
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+  get_calculated_derived_cashflows:
+    handler: services/service_outputs/src/handlers/get_calculated_derived_cashflows.lambda_handler
+    description: "[GET] Obtiene los derived cashflows calculados para un business (evaluador desde JWT)"
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - http:
+          path: businesses/{business_id}/derived-cashflows
+          method: get
+          cors: *corsGet
+          authorizer: *authorizerConfig
+
+  calculated_derived_async:
+    handler: services/service_outputs/src/handlers/calculated_derived_async.lambda_handler
+    description: "[SQS] Calcula derived cashflows de forma asíncrona desde cola FIFO"
+    layers:
+      - { Ref: OutputLibLambdaLayer }
+    events:
+      - sqs:
+          arn: !GetAtt DerivedCashflowsQueue.Arn
+          batchSize: ${self:custom.sqsBatchSize}
+          maximumConcurrency: ${self:custom.sqsMaxConcurrency}
+          enabled: true
+
+# ──────────────────────────────────────────────────────────────────────────────
+# RECURSOS
+# ──────────────────────────────────────────────────────────────────────────────
+resources:
+  Description: "API Outputs - Cálculo y consulta de outputs financieros"
+
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - ${env:COGNITO_USER_POOL_ARN}
+
+    # ── SQS: Derived Cashflows Calculate (FIFO) + DLQ ────────────────────────
+    DerivedCashflowsDlq:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsDerivedCashflowsDlqName}
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        MessageRetentionPeriod: 604800   # 7 días
+        VisibilityTimeout: 3600
+        SqsManagedSseEnabled: true
+
+    DerivedCashflowsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsDerivedCashflowsName}
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        VisibilityTimeout: 180           # > timeout lambda (29s), margen amplio
+        MessageRetentionPeriod: 86400    # 1 día
+        DeduplicationScope: messageGroup
+        FifoThroughputLimit: perMessageGroupId
+        SqsManagedSseEnabled: true
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt DerivedCashflowsDlq.Arn
+          maxReceiveCount: 3

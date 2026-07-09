@@ -1,0 +1,455 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# SERVICIO: Credit Proposal Coril
+# Descripción: Generación de propuestas de crédito Coril con PDF y Word
+# Endpoints: /credit-proposals-coril/*
+# ══════════════════════════════════════════════════════════════════════════════
+
+service: service-credit-proposal-coril
+
+provider:
+  name: aws
+  region: ${env:AWS_REGION, 'us-east-1'}
+  # Importante: permitir que `--stage prod` (opt:stage) domine sobre env:STAGE.
+  # Si no, al desplegar prod se pueden seguir nombrando recursos como `...-dev`
+  # (ej: /aws/lambda/deleteCorilProposal-dev) y chocar con el stack dev.
+  stage: ${opt:stage, env:STAGE, 'dev'}
+  memorySize: 3008  # Más memoria para Playwright
+  timeout: 29      # Default para endpoints HTTP; las Lambdas de análisis usan 900 (15 min)
+  iam:
+    role: arn:aws:iam::051826715282:role/rol-lambda
+  environment:
+    STAGE: ${self:provider.stage}
+    # ── Database ──
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    # ── S3 ──
+    S3_BUCKET: ${env:S3_BUCKET, 'mi-bucket-financiero-dev2'}
+    # ── Playwright ──
+     # ── IA / Anthropic para análisis Coril ──
+    ANALYZE_CORIL_API_KEY: ${env:ANALYZE_CORIL_API_KEY, ''}
+    ANALYZE_CORIL_MODEL: ${env:ANALYZE_CORIL_MODEL, 'claude-3-7-sonnet-20250219'}
+    ANALYZE_CORIL_MAX_TOKENS: ${env:ANALYZE_CORIL_MAX_TOKENS, '4000'}
+    ANALYZE_CORIL_TEMPERATURE: ${env:ANALYZE_CORIL_TEMPERATURE, '0.3'}
+    # ── Análisis financiero ──
+    FINANCIAL_ANALYSIS_QUEUE_URL: ${env:FINANCIAL_ANALYSIS_QUEUE_URL}
+    # Cola GC (CreditProposalAnalysisOrchestration). Sin default: definir en .env por stage (ej. dev vs prod).
+    CREDIT_PROPOSAL_ANALYSIS_QUEUE_URL: ${env:CREDIT_PROPOSAL_ANALYSIS_QUEUE_URL}
+    QUEUE_URL_CREDIT_MEMO_ANALYSIS_CM: ${env:QUEUE_URL_CREDIT_MEMO_ANALYSIS_CM}
+    QUEUE_URL_INTERBANK_COMPANY_PROFILE_MEMO: ${env:QUEUE_URL_INTERBANK_COMPANY_PROFILE_MEMO}
+    # ── Step Function Business Memo ──
+    BUSINESS_MEMO_STATE_MACHINE_ARN: ${env:BUSINESS_MEMO_STATE_MACHINE_ARN, 'arn:aws:states:us-east-1:051826715282:stateMachine:BusinessMemoOrchestrationac'}
+    # ── AppSync ──
+    APPSYNC_ENDPOINT: ${env:APPSYNC_ENDPOINT}
+    APPSYNC_API_KEY: ${env:APPSYNC_API_KEY}
+    APPSYNC_LAMBDA_NAME: ${env:APPSYNC_LAMBDA_NAME, 'analyzeFinancialAppSync-${self:provider.stage}'}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FUNCIONES
+# ──────────────────────────────────────────────────────────────────────────────
+functions:
+  
+  # ════════════════════════════════════════════════════════════════════════════
+  # Crear propuesta de crédito (PDF)
+  # ════════════════════════════════════════════════════════════════════════════
+  create_credit_proposal_coril:
+    name: createCorilProposal-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.create_credit_proposal_coril.lambda_handler
+    description: "[POST] Crea propuesta de crédito Coril (genera PDF)"
+    events:
+      - http:
+          path: credit-proposals-coril
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Crear propuesta de crédito (Word)
+  # ════════════════════════════════════════════════════════════════════════════
+  create_credit_proposal_coril_word:
+    name: createCorilProposalWord-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.create_credit_proposal_coril_word.lambda_handler
+    description: "[POST] Crea propuesta de crédito Coril (genera Word)"
+    events:
+      - http:
+          path: credit-proposals-coril/word
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Obtener propuestas de crédito
+  # ════════════════════════════════════════════════════════════════════════════
+  get_credit_proposals_coril:
+    name: getCorilProposals-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.get_credit_proposals_coril.lambda_handler
+    description: "[GET] Obtiene lista de propuestas de crédito Coril"
+    events:
+      - http:
+          path: credit-proposals-coril
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Obtener detalle de propuesta de crédito por ID
+  # ════════════════════════════════════════════════════════════════════════════
+  get_credit_proposal_coril_detail:
+    name: getCorilProposalDetail-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.get_credit_proposal_coril_detail.lambda_handler
+    description: "[GET] Obtiene el detalle completo de una propuesta de crédito Coril"
+    events:
+      - http:
+          path: credit-proposals-coril/{proposal_id}
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Descargar propuesta de crédito
+  # ════════════════════════════════════════════════════════════════════════════
+  download_credit_proposal_coril:
+    name: downloadCorilProposal-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.download_credit_proposal_coril.lambda_handler
+    description: "[GET] Descarga una propuesta de crédito Coril"
+    events:
+      - http:
+          path: credit-proposals-coril/{proposal_id}/download
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Obtener ruta de evaluador (proposal_type)
+  # ════════════════════════════════════════════════════════════════════════════
+  get_evaluator_route:
+    name: getEvaluatorRoute-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.get_evaluator_route_handler.lambda_handler
+    description: "[GET] Obtiene la ruta (proposal_type) configurada para un evaluator"
+    events:
+      - http:
+          path: credit-proposals-coril/evaluator-route
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Descargar propuesta de crédito (Word)
+  # ════════════════════════════════════════════════════════════════════════════
+  download_credit_proposal_coril_word:
+    name: downloadCorilProposalWordFile-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.download_credit_proposal_coril_word.lambda_handler
+    description: "[GET] Descarga archivo Word de una propuesta de crédito Coril"
+    events:
+      - http:
+          path: credit-proposals-coril/{proposal_id}/download/word
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Eliminar propuesta de crédito
+  # ════════════════════════════════════════════════════════════════════════════
+  delete_credit_proposal_coril:
+    name: deleteCorilProposal-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.delete_credit_proposal_coril.lambda_handler
+    description: "[DELETE] Elimina una propuesta de crédito Coril"
+    events:
+      - http:
+          path: credit-proposals-coril/{proposal_id}
+          method: delete
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Eliminar varias propuestas de crédito en lote
+  # ════════════════════════════════════════════════════════════════════════════
+  delete_batch_credit_proposals_coril:
+    name: deleteBatchCorilProposals-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.delete_batch_credit_proposals_coril.lambda_handler
+    description: "[POST] Elimina varias propuestas de crédito Coril por lista de IDs"
+    events:
+      - http:
+          path: credit-proposals-coril/batch-delete
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Actualizar propuesta de crédito
+  # ════════════════════════════════════════════════════════════════════════════
+  update_credit_proposal_coril:
+    name: updateCorilProposal-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.update_credit_proposal_coril.lambda_handler
+    description: "[PUT] Actualiza una propuesta de crédito Coril (regenera PDF y Word)"
+    events:
+      - http:
+          path: credit-proposals-coril/{proposal_id}
+          method: put
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Inicializar propuesta de crédito (sin content_data)
+  # ════════════════════════════════════════════════════════════════════════════
+  init_credit_proposal_coril:
+    name: initCorilProposal-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.init_credit_proposal_coril.lambda_handler
+    description: "[POST] Inicializa propuesta de crédito (crea registro, retorna credit_memo_id)"
+    events:
+      - http:
+          path: credit-proposals-coril/init
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis de negocio (solo Lambda; invocado por Step Function)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_business:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_business_handler.lambda_handler
+    description: "[Lambda] Analiza negocio para propuesta de crédito (Step Function)"
+    timeout: 900  # 15 minutos (análisis con IA)
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis financiero - Emisor (HTTP -> SQS)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_financial_emitter:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_financial_emitter_handler.lambda_handler
+    description: "[POST] Emisor: Recibe request HTTP y envía a SQS para análisis financiero asíncrono"
+    timeout: 29  # API Gateway max 29s; solo recibe y envía a SQS
+    environment:
+      FINANCIAL_ANALYSIS_QUEUE_URL:
+        Fn::GetAtt:
+          - FinancialAnalysisQueue
+          - QueueUrl
+    events:
+      - http:
+          path: credit-proposals-coril/analyze/financial
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis financiero - SQS -> Step Function (BusinessMemoOrchestration)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_financial_sqs_step:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_financial_sqs_step_handler.lambda_handler
+    description: "[SQS] Recibe mensaje de cola e inicia Step Function BusinessMemoOrchestration con business_id"
+    timeout: 900  # 15 minutos
+    environment:
+      BUSINESS_MEMO_STATE_MACHINE_ARN: ${env:BUSINESS_MEMO_STATE_MACHINE_ARN, 'arn:aws:states:us-east-1:051826715282:stateMachine:BusinessMemoOrchestrationac'}
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - FinancialAnalysisQueue
+              - Arn
+          batchSize: 1
+          functionResponseType: ReportBatchItemFailures
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis financiero - Procesador (invocado por Step Function u otro)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_financial:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_financial_handler.lambda_handler
+    description: "[Lambda] Procesa análisis financiero y publica a AppSync (para Step Function / invocación directa)"
+    timeout: 900  # 15 minutos para análisis con IA
+    environment:
+      APPSYNC_ENDPOINT: ${env:APPSYNC_ENDPOINT}
+      APPSYNC_API_KEY: ${env:APPSYNC_API_KEY}
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis FODA y riesgos (solo Lambda; invocado por Step Function)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_foda_risks:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_foda_risks_handler.lambda_handler
+    description: "[Lambda] Analiza FODA y riesgos (Step Function)"
+    timeout: 900  # 15 minutos (análisis con IA)
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis de solvencia y liquidez (solo Lambda; invocado por Step Function)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_solvency_liquidity:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_solvency_liquidity_handler.lambda_handler
+    description: "[Lambda] Analiza solvencia y liquidez (Step Function)"
+    timeout: 900  # 15 minutos (análisis con IA)
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Build Credit Memo from analyses (parallel_results -> body para create_credit_proposal_coril)
+  # ════════════════════════════════════════════════════════════════════════════
+  build_credit_memo_from_analyses:
+    name: buildCreditMemoFromAnalyses-${self:provider.stage}
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.build_credit_memo_from_analyses_handler.lambda_handler
+    description: "[Lambda] Extrae contenidos de parallel_results y arma body_for_create para create_credit_proposal_coril"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Análisis de sector económico (solo Lambda; invocado por Step Function)
+  # ════════════════════════════════════════════════════════════════════════════
+  analyze_sector_economico:
+    image:
+      uri: ${env:ECR_IMAGE_URI, '051826715282.dkr.ecr.us-east-1.amazonaws.com/credit-proposal-coril:${self:provider.stage}'}
+      command:
+        - services.service_credit_proposal_coril.src.handlers.analyze_sector_economico_handler.lambda_handler
+    description: "[Lambda] Analiza sector económico (Step Function)"
+    timeout: 900  # 15 minutos (análisis con IA)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# RECURSOS
+# ──────────────────────────────────────────────────────────────────────────────
+resources:
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - ${env:COGNITO_USER_POOL_ARN}
+
+    # ════════════════════════════════════════════════════════════════════════════
+    # Dead Letter Queue para análisis financiero (FIFO)
+    # ════════════════════════════════════════════════════════════════════════════
+    FinancialAnalysisDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-financial-analysis-dlq.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        MessageRetentionPeriod: 1209600  # 14 días
+        VisibilityTimeout: 960  # Debe ser >= timeout de Lambda (900s) + buffer
+
+    # ════════════════════════════════════════════════════════════════════════════
+    # Cola SQS para análisis financiero (FIFO)
+    # ════════════════════════════════════════════════════════════════════════════
+    FinancialAnalysisQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-financial-analysis-queue.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        VisibilityTimeout: 960  # Debe ser >= timeout de Lambda (900s) + buffer de 60s
+        MessageRetentionPeriod: 345600  # 4 días
+        ReceiveMessageWaitTimeSeconds: 0  # Short polling
+        RedrivePolicy:
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - FinancialAnalysisDLQ
+              - Arn
+          maxReceiveCount: 1  # 0 reintentos (va directo a DLQ si falla)
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Outputs
+  # ════════════════════════════════════════════════════════════════════════════
+  Outputs:
+    FinancialAnalysisQueueUrl:
+      Description: URL de la cola SQS para análisis financiero
+      Value:
+        Ref: FinancialAnalysisQueue
+      # Export removido temporalmente para evitar conflicto con stack prod
+      # Export:
+      #   Name: ${self:service}-${self:provider.stage}-financial-analysis-queue-url
+    
+    FinancialAnalysisDLQUrl:
+      Description: URL de la DLQ para análisis financiero
+      Value:
+        Ref: FinancialAnalysisDLQ
+      # Export removido temporalmente para evitar conflicto con stack prod
+      # Export:
+      #   Name: ${self:service}-${self:provider.stage}-financial-analysis-dlq-url
+
